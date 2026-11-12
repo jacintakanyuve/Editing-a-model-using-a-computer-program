@@ -1,0 +1,690 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Технология 7 класс: Редактирование моделей</title>
+  <style>
+    :root {
+      --bg: #f8fafc;
+      --surface: #ffffff;
+      --surface-soft: #f1f5f9;
+      --primary: #0ea5e9;
+      --primary-dark: #0284c7;
+      --primary-light: #e0f2fe;
+      --accent: #f59e0b;
+      --success: #10b981;
+      --success-light: #d1fae5;
+      --warning: #f59e0b;
+      --warning-light: #fef3c7;
+      --danger: #ef4444;
+      --danger-light: #fee2e2;
+      --text: #0f172a;
+      --text-muted: #64748b;
+      --border: #e2e8f0;
+      --radius: 16px;
+      --shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1);
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      line-height: 1.6;
+      padding-bottom: 60px;
+    }
+
+    .topbar {
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      background: rgba(255, 255, 255, 0.9);
+      backdrop-filter: blur(10px);
+      border-bottom: 1px solid var(--border);
+      padding: 12px 16px;
+    }
+
+    .topbar-inner { max-width: 800px; margin: 0 auto; }
+    
+    .topbar-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 10px;
+    }
+
+    .badge {
+      background: var(--primary-light);
+      color: var(--primary-dark);
+      font-weight: 700;
+      font-size: 0.85rem;
+      padding: 4px 12px;
+      border-radius: 999px;
+    }
+
+    .timer-box {
+      font-size: 0.85rem;
+      font-weight: 600;
+      color: var(--text-muted);
+      background: var(--surface-soft);
+      padding: 4px 12px;
+      border-radius: 999px;
+      border: 1px solid var(--border);
+    }
+
+    .progress-track {
+      width: 100%;
+      height: 8px;
+      background: #e2e8f0;
+      border-radius: 999px;
+      overflow: hidden;
+    }
+
+    .progress-fill {
+      height: 100%;
+      width: 0%;
+      background: linear-gradient(90deg, var(--primary), #3b82f6);
+      transition: width 0.4s ease;
+    }
+
+    .nav-pills {
+      display: flex;
+      gap: 8px;
+      overflow-x: auto;
+      padding-top: 12px;
+      scrollbar-width: none;
+    }
+    .nav-pills::-webkit-scrollbar { display: none; }
+
+    .nav-pill {
+      border: 1px solid var(--border);
+      background: var(--surface);
+      color: var(--text-muted);
+      padding: 6px 14px;
+      border-radius: 999px;
+      font-size: 0.85rem;
+      font-weight: 600;
+      cursor: pointer;
+      white-space: nowrap;
+      transition: all 0.2s;
+    }
+
+    .nav-pill.active {
+      background: var(--primary);
+      color: #fff;
+      border-color: var(--primary);
+    }
+
+    .nav-pill.done {
+      border-color: var(--success);
+      color: var(--success);
+      background: var(--success-light);
+    }
+    .nav-pill.active.done { background: var(--success); color: #fff; }
+
+    .container { max-width: 800px; margin: 24px auto 0; padding: 0 16px; }
+
+    .card {
+      background: var(--surface);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      padding: 24px;
+      margin-bottom: 24px;
+      border: 1px solid rgba(255,255,255,0.8);
+    }
+
+    .module { display: none; animation: slideUp 0.3s ease; }
+    .module.active { display: block; }
+
+    @keyframes slideUp {
+      from { opacity: 0; transform: translateY(10px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    h1 { font-size: 1.6rem; line-height: 1.3; margin-bottom: 12px; }
+    h2 { font-size: 1.3rem; margin-bottom: 12px; color: var(--primary-dark); }
+    h3 { font-size: 1.1rem; margin: 16px 0 8px; }
+    p { margin-bottom: 12px; }
+
+    .time-tag {
+      display: inline-block;
+      font-size: 0.8rem;
+      font-weight: 700;
+      color: var(--accent);
+      background: var(--warning-light);
+      padding: 4px 10px;
+      border-radius: 8px;
+      margin-bottom: 12px;
+    }
+
+    .grid-2 { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 16px; margin: 16px 0; }
+    .grid-3 { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 12px; margin: 16px 0; }
+
+    .info-box {
+      background: var(--surface-soft);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 16px;
+    }
+    .info-box strong { display: block; margin-bottom: 8px; color: var(--primary-dark); font-size: 1.05rem; }
+
+    .interactive-zone {
+      background: #f8fafc;
+      border: 2px dashed #bae6fd;
+      border-radius: var(--radius);
+      padding: 20px;
+      margin-top: 20px;
+    }
+
+    .interactive-title {
+      font-weight: 800;
+      font-size: 1.1rem;
+      color: var(--primary-dark);
+      margin-bottom: 12px;
+    }
+
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      background: var(--primary);
+      color: #fff;
+      border: none;
+      border-radius: 10px;
+      padding: 10px 20px;
+      font-size: 0.95rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    .btn:hover { background: var(--primary-dark); transform: translateY(-1px); }
+    .btn:active { transform: translateY(1px); }
+    .btn-secondary { background: #e2e8f0; color: var(--text); }
+    .btn-secondary:hover { background: #cbd5e1; }
+    .btn-success { background: var(--success); }
+    .btn-success:hover { background: #059669; }
+    .btn-sm { padding: 8px 14px; font-size: 0.85rem; }
+
+    .nav-footer {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 12px;
+      margin-top: 24px;
+      padding-top: 16px;
+      border-top: 1px solid var(--border);
+    }
+
+    input.field, select.field {
+      width: 100%;
+      padding: 10px 14px;
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      font-size: 1rem;
+      margin-bottom: 12px;
+    }
+
+    /* CSS 3D Cube Styles */
+    .scene {
+      width: 150px;
+      height: 150px;
+      perspective: 600px;
+      margin: 30px auto;
+    }
+    .cube {
+      width: 100%;
+      height: 100%;
+      position: relative;
+      transform-style: preserve-3d;
+      transform: translateZ(-75px) rotateX(-15deg) rotateY(15deg);
+      transition: transform 0.1s linear;
+    }
+    .cube__face {
+      position: absolute;
+      width: 150px;
+      height: 150px;
+      border: 2px solid var(--primary-dark);
+      background: rgba(14, 165, 233, 0.3);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: bold;
+      font-size: 1.2rem;
+      color: var(--primary-dark);
+      backdrop-filter: blur(2px);
+    }
+    .cube__face--front  { transform: rotateY(  0deg) translateZ( 75px); }
+    .cube__face--right  { transform: rotateY( 90deg) translateZ( 75px); }
+    .cube__face--back   { transform: rotateY(180deg) translateZ( 75px); }
+    .cube__face--left   { transform: rotateY(-90deg) translateZ( 75px); }
+    .cube__face--top    { transform: rotateX( 90deg) translateZ( 75px); }
+    .cube__face--bottom { transform: rotateX(-90deg) translateZ( 75px); }
+
+    .slider-group { margin-bottom: 12px; }
+    .slider-group label { display: flex; justify-content: space-between; font-size: 0.85rem; font-weight: 600; margin-bottom: 4px; }
+    .slider-group input { width: 100%; }
+
+    /* Boolean Visualizer */
+    .bool-container { text-align: center; margin: 20px 0; min-height: 180px; }
+    .bool-svg { width: 200px; height: 160px; display: none; margin: 0 auto; }
+    .bool-svg.active { display: block; animation: slideUp 0.3s ease; }
+    .bool-btn { margin: 4px; }
+
+    /* Quiz */
+    .quiz-q { margin-bottom: 16px; padding: 16px; background: var(--surface-soft); border-radius: 12px; }
+    .quiz-opt {
+      display: block; width: 100%; text-align: left; padding: 10px 14px; margin-top: 8px;
+      border: 1px solid var(--border); border-radius: 8px; background: var(--surface); cursor: pointer;
+    }
+    .quiz-opt.selected { border-color: var(--primary); background: var(--primary-light); font-weight: 600; }
+    .quiz-opt.correct { border-color: var(--success); background: var(--success-light); color: #064e3b; font-weight: 700; }
+    .quiz-opt.wrong { border-color: var(--danger); background: var(--danger-light); color: #7f1d1d; }
+
+    /* Cert */
+    .cert-box {
+      border: 3px solid var(--primary);
+      background: linear-gradient(135deg, #ffffff 0%, #f0f9ff 100%);
+      border-radius: 20px;
+      padding: 30px 20px;
+      text-align: center;
+      margin-top: 20px;
+    }
+    .cert-grade {
+      display: inline-block; font-size: 1.6rem; font-weight: 800; color: var(--success);
+      background: var(--success-light); padding: 8px 24px; border-radius: 12px; margin: 16px 0;
+    }
+  </style>
+</head>
+<body>
+
+  <header class="topbar">
+    <div class="topbar-inner">
+      <div class="topbar-row">
+        <span class="badge">Технология • 7 класс</span>
+        <span class="timer-box" id="timerDisplay">00:00 / 45:00</span>
+      </div>
+      <div class="progress-track">
+        <div class="progress-fill" id="progressBar"></div>
+      </div>
+      <nav class="nav-pills" id="navPills">
+        <button class="nav-pill active" onclick="goToStep(0)">Старт</button>
+        <button class="nav-pill" onclick="goToStep(1)">1. САПР</button>
+        <button class="nav-pill" onclick="goToStep(2)">2. Трансформации</button>
+        <button class="nav-pill" onclick="goToStep(3)">3. Геометрия</button>
+        <button class="nav-pill" onclick="goToStep(4)">4. Экспорт</button>
+        <button class="nav-pill" onclick="goToStep(5)">5. Тест</button>
+      </nav>
+    </div>
+  </header>
+
+  <main class="container">
+
+    <!-- ШАГ 0: ВВЕДЕНИЕ -->
+    <section class="module active" id="step-0">
+      <div class="card">
+        <span class="time-tag">План урока • 45 минут</span>
+        <h1>Редактирование модели с помощью компьютерной программы</h1>
+        <p>Привет! На этом уроке ты узнаешь, как инженеры и дизайнеры создают и редактируют чертежи и 3D-модели. Эти знания понадобятся для работы с лазерными станками и 3D-принтерами.</p>
+        
+        <div class="info-box" style="margin-bottom: 20px;">
+          <strong>🎯 Что нужно сделать:</strong>
+          Внимательно изучи 4 модуля, испытай 3D-симулятор в браузере и пройди итоговый тест. В конце ты получишь карточку с оценкой — отправь её учителю.
+        </div>
+
+        <label><strong>Введи фамилию, имя и класс:</strong></label>
+        <input type="text" id="studentNameInput" class="field" placeholder="Например: Смирнов Алексей, 7-Б" />
+
+        <div class="nav-footer">
+          <span></span>
+          <button class="btn" onclick="startLesson()">Начать урок →</button>
+        </div>
+      </div>
+    </section>
+
+    <!-- ШАГ 1: САПР -->
+    <section class="module" id="step-1">
+      <div class="card">
+        <span class="time-tag">Модуль 1 • Теория (5 мин)</span>
+        <h2>1. Что такое САПР и зачем она нужна?</h2>
+        <p>Раньше чертежи делали на бумаге с помощью кульмана. Если инженер ошибался, приходилось перечерчивать весь лист. Сегодня всё проектирование ведётся в <strong>САПР</strong>.</p>
+        
+        <div class="grid-2">
+          <div class="info-box">
+            <strong>САПР (Система автоматизированного проектирования)</strong>
+            Компьютерная программа (на английском <strong>CAD</strong> — Computer-Aided Design), в которой создаются плоские (2D) векторные чертежи и объёмные (3D) модели деталей.
+          </div>
+          <div class="info-box">
+            <strong>Координатная сетка</strong>
+            Любая модель в САПР имеет координаты. Для плоских чертежей (например, для лазерного гравера) используются оси <strong>X</strong> (ширина) и <strong>Y</strong> (высота). Для 3D (печать) добавляется ось <strong>Z</strong> (глубина).
+          </div>
+        </div>
+
+        <p>К популярным САПР относятся: КОМПАС-3D, AutoCAD, Tinkercad, Blender. А для плоских векторных изображений (под лазерную резку) часто используют редакторы вроде CorelDRAW, Inkscape или LightBurn.</p>
+
+        <div class="interactive-zone">
+          <div class="interactive-title">Мини-проверка: Зачем нужна ось Z?</div>
+          <select id="axisZSelect" class="field">
+            <option value="">-- Выбери ответ --</option>
+            <option value="1">Она отвечает за цвет детали</option>
+            <option value="2">Она задаёт объём (глубину/высоту) для 3D-модели</option>
+            <option value="3">Она используется только в плоских чертежах</option>
+          </select>
+          <button class="btn btn-sm" onclick="checkAxisZ()">Проверить</button>
+          <div id="axisZFeedback" style="margin-top:8px; font-weight:600; font-size:0.9rem;"></div>
+        </div>
+
+        <div class="nav-footer">
+          <button class="btn btn-secondary" onclick="goToStep(0)">← Назад</button>
+          <button class="btn" onclick="goToStep(2)">Дальше: Инструменты →</button>
+        </div>
+      </div>
+    </section>
+
+    <!-- ШАГ 2: БАЗОВЫЕ ТРАНСФОРМАЦИИ -->
+    <section class="module" id="step-2">
+      <div class="card">
+        <span class="time-tag">Модуль 2 • Практика (10 мин)</span>
+        <h2>2. Базовые инструменты редактирования</h2>
+        <p>Какую бы программу ты не открыл, основные действия (трансформации) с объектом всегда одинаковы. Их три:</p>
+        
+        <div class="grid-3">
+          <div class="info-box"><strong>Перемещение (Move)</strong>Сдвиг детали вдоль осей X, Y или Z без изменения её формы.</div>
+          <div class="info-box"><strong>Вращение (Rotate)</strong>Поворот детали вокруг выбранной оси на определённый угол (в градусах).</div>
+          <div class="info-box"><strong>Масштаб (Scale)</strong>Увеличение или уменьшение детали (в процентах или миллиметрах).</div>
+        </div>
+
+        <div class="interactive-zone">
+          <div class="interactive-title">3D-симулятор трансформаций</div>
+          <p style="font-size:0.9rem; color:var(--text-muted);">Используй ползунки, чтобы изменять положение и размер куба прямо в браузере.</p>
+          
+          <div class="scene">
+            <div class="cube" id="cubeObj">
+              <div class="cube__face cube__face--front">X Y</div>
+              <div class="cube__face cube__face--back"></div>
+              <div class="cube__face cube__face--right"></div>
+              <div class="cube__face cube__face--left"></div>
+              <div class="cube__face cube__face--top">Z</div>
+              <div class="cube__face cube__face--bottom"></div>
+            </div>
+          </div>
+
+          <div class="slider-group">
+            <label>Вращение по оси X (Вверх/Вниз): <span id="valRX">-15°</span></label>
+            <input type="range" id="rotX" min="-180" max="180" value="-15" oninput="updateCube()">
+          </div>
+          <div class="slider-group">
+            <label>Вращение по оси Y (Влево/Вправо): <span id="valRY">15°</span></label>
+            <input type="range" id="rotY" min="-180" max="180" value="15" oninput="updateCube()">
+          </div>
+          <div class="slider-group">
+            <label>Масштабирование (Размер): <span id="valS">1.0</span></label>
+            <input type="range" id="scaleObj" min="0.5" max="1.5" step="0.1" value="1" oninput="updateCube()">
+          </div>
+          <div style="text-align:center; margin-top: 10px;">
+            <button class="btn btn-sm btn-secondary" onclick="resetCube()">Сбросить трансформации</button>
+          </div>
+        </div>
+
+        <div class="nav-footer">
+          <button class="btn btn-secondary" onclick="goToStep(1)">← Назад</button>
+          <button class="btn" onclick="markStepDone(2); goToStep(3)">Дальше: Сложная форма →</button>
+        </div>
+      </div>
+    </section>
+
+    <!-- ШАГ 3: ИЗМЕНЕНИЕ ГЕОМЕТРИИ -->
+    <section class="module" id="step-3">
+      <div class="card">
+        <span class="time-tag">Модуль 3 • Геометрия (15 мин)</span>
+        <h2>3. Создание сложных форм</h2>
+        <p>Простых кубиков и сфер недостаточно, чтобы сделать деталь для робота или корпус для прибора. Для усложнения формы используются две главные операции.</p>
+
+        <div class="info-box" style="margin-bottom: 16px;">
+          <strong>Выдавливание (Extrude)</strong>
+          Операция превращения плоского 2D-эскиза (например, нарисованного круга) в объёмную 3D-модель (цилиндр) путём «вытягивания» его вдоль оси Z.
+        </div>
+
+        <h3>Логические (Булевы) операции</h3>
+        <p>Позволяют создавать сложную геометрию из нескольких простых фигур (примитивов).</p>
+
+        <div class="interactive-zone">
+          <div class="interactive-title">Симулятор булевых операций</div>
+          <p style="font-size:0.9rem;">Посмотри, что произойдет с Синим квадратом и Красным кругом при применении разных операций.</p>
+          
+          <div style="text-align:center; margin-bottom:12px;">
+            <button class="btn btn-sm btn-secondary bool-btn" onclick="showBool('add')">Объединение (Слияние)</button>
+            <button class="btn btn-sm btn-secondary bool-btn" onclick="showBool('sub')">Вычитание (Отверстие)</button>
+            <button class="btn btn-sm btn-secondary bool-btn" onclick="showBool('int')">Пересечение</button>
+          </div>
+
+          <div class="bool-container">
+            <!-- Начальное состояние -->
+            <svg id="bool-base" class="bool-svg active" viewBox="0 0 200 160">
+              <rect x="20" y="30" width="100" height="100" fill="rgba(37,99,235,0.7)" stroke="#2563eb" stroke-width="2"/>
+              <circle cx="120" cy="80" r="50" fill="rgba(220,38,38,0.7)" stroke="#dc2626" stroke-width="2"/>
+              <text x="100" y="150" font-size="12" fill="#64748b" text-anchor="middle">Исходные фигуры наложены друг на друга</text>
+            </svg>
+            
+            <!-- Объединение -->
+            <svg id="bool-add" class="bool-svg" viewBox="0 0 200 160">
+              <path d="M 20 30 L 120 30 A 50 50 0 0 1 120 130 L 20 130 Z" fill="#8b5cf6" />
+              <text x="100" y="150" font-size="12" fill="#64748b" text-anchor="middle">Единая цельная деталь (швы убраны)</text>
+            </svg>
+            
+            <!-- Вычитание -->
+            <svg id="bool-sub" class="bool-svg" viewBox="0 0 200 160">
+              <path d="M 20 30 L 120 30 A 50 50 0 0 0 120 130 L 20 130 Z" fill="#2563eb" />
+              <text x="100" y="150" font-size="12" fill="#64748b" text-anchor="middle">Красный круг вырезал кусок (стало отверстием)</text>
+            </svg>
+
+            <!-- Пересечение -->
+            <svg id="bool-int" class="bool-svg" viewBox="0 0 200 160">
+              <path d="M 120 30 A 50 50 0 0 1 120 130 L 120 130 Z" fill="#10b981" />
+              <text x="100" y="150" font-size="12" fill="#64748b" text-anchor="middle">Осталась только общая (наложившаяся) часть</text>
+            </svg>
+          </div>
+        </div>
+
+        <div class="nav-footer">
+          <button class="btn btn-secondary" onclick="goToStep(2)">← Назад</button>
+          <button class="btn" onclick="markStepDone(3); goToStep(4)">Дальше: Подготовка к производству →</button>
+        </div>
+      </div>
+    </section>
+
+    <!-- ШАГ 4: ЭКСПОРТ (СЛАЙСИНГ И G-CODE) -->
+    <section class="module" id="step-4">
+      <div class="card">
+        <span class="time-tag">Модуль 4 • Производство (10 мин)</span>
+        <h2>4. От компьютера к станку</h2>
+        <p>Готовую модель в САПР станок (или 3D-принтер) напрямую не понимает. Модель нужно экспортировать (сохранить в специальном формате) и перевести в понятные станку команды.</p>
+
+        <div class="grid-2">
+          <div class="info-box">
+            <strong>Для 3D-принтера (Объём)</strong>
+            Модель сохраняют в формат <strong>.STL</strong>. Затем программа-слайсер (например, Cura) нарезает её на тонкие горизонтальные слои.
+          </div>
+          <div class="info-box">
+            <strong>Для Лазерного станка (Контур)</strong>
+            Модель сохраняют в векторный формат <strong>.SVG</strong> или <strong>.DXF</strong>, где описаны чёткие линии для реза или гравировки.
+          </div>
+        </div>
+
+        <div class="info-box" style="margin-top:16px; border-color: var(--primary);">
+          <strong>Финал: G-code (G-код)</strong>
+          И слайсер для принтера, и программа для лазера в итоге генерируют файл с расширением <strong>.gcode</strong>. Это текстовый документ, состоящий из координат. Станок читает его построчно: <em>«Сдвинуть головку в точку X=10 Y=20, включить лазер (или экструдер пластика) на 50% мощности»</em>.
+        </div>
+
+        <div class="nav-footer">
+          <button class="btn btn-secondary" onclick="goToStep(3)">← Назад</button>
+          <button class="btn" onclick="markStepDone(4); goToStep(5)">Перейти к итоговому тесту →</button>
+        </div>
+      </div>
+    </section>
+
+    <!-- ШАГ 5: ТЕСТ И СЕРТИФИКАТ -->
+    <section class="module" id="step-5">
+      <div class="card">
+        <span class="time-tag">Модуль 5 • Итог (5 мин)</span>
+        <h2>5. Итоговый тест</h2>
+        <p>Ответь на 6 вопросов, чтобы проверить свои знания и получить оценку за урок.</p>
+
+        <div id="quizContainer"></div>
+        <button class="btn btn-success" style="width:100%; margin-top:16px;" onclick="finishLesson()">Сдать тест и получить оценку</button>
+
+        <div id="certSection" style="display: none;">
+          <div class="cert-box">
+            <div style="font-size:0.9rem; text-transform:uppercase; color:var(--text-muted); font-weight:700;">
+              Электронный отчёт • Технология 7 класс
+            </div>
+            <h2 id="cName" style="margin:10px 0; color:var(--text);">Ученик</h2>
+            <p>Тема: «Редактирование модели с помощью компьютерной программы»</p>
+            <div class="cert-grade" id="cGrade">Оценка: 5</div>
+            <p id="cStats" style="font-weight:600;"></p>
+            <p style="font-size:0.85rem; color:var(--text-muted); margin-top:8px;">
+              Код проверки: <span id="cCode" style="font-family:monospace;"></span>
+            </p>
+            <p style="color: var(--danger); font-weight: bold; margin-top: 16px;">
+              Сделай скриншот этого блока и отправь учителю!
+            </p>
+          </div>
+        </div>
+
+        <div class="nav-footer">
+          <button class="btn btn-secondary" onclick="goToStep(4)">← Вернуться к теории</button>
+        </div>
+      </div>
+    </section>
+
+  </main>
+
+  <script>
+    const state = { step: 0, done: [false,false,false,false,false,false], time: 0, name: "" };
+
+    // Таймер
+    setInterval(() => {
+      state.time++;
+      const m = String(Math.floor(state.time / 60)).padStart(2, "0");
+      const s = String(state.time % 60).padStart(2, "0");
+      document.getElementById("timerDisplay").textContent = `${m}:${s} / 45:00`;
+    }, 1000);
+
+    // Навигация
+    function goToStep(idx) {
+      document.querySelectorAll(".module").forEach((el, i) => el.classList.toggle("active", i === idx));
+      document.querySelectorAll(".nav-pill").forEach((el, i) => {
+        el.classList.toggle("active", i === idx);
+        el.classList.toggle("done", state.done[i]);
+      });
+      state.step = idx;
+      document.getElementById("progressBar").style.width = `${Math.min(100, Math.round((state.done.filter(Boolean).length / 5)*100))}%`;
+      window.scrollTo({ top: 0, behavior: "smooth" });
+    }
+
+    function markStepDone(idx) { state.done[idx] = true; updateNav(); }
+    function updateNav() {
+      document.querySelectorAll(".nav-pill").forEach((el, i) => el.classList.toggle("done", state.done[i]));
+      document.getElementById("progressBar").style.width = `${Math.min(100, Math.round((state.done.filter(Boolean).length / 5)*100))}%`;
+    }
+
+    function startLesson() {
+      state.name = document.getElementById("studentNameInput").value.trim() || "Ученик 7 класса";
+      markStepDone(0); goToStep(1);
+    }
+
+    // Интерактив 1
+    function checkAxisZ() {
+      const val = document.getElementById("axisZSelect").value;
+      const fb = document.getElementById("axisZFeedback");
+      if(val === "2") {
+        fb.style.color = "var(--success)"; fb.textContent = "Верно! Ось Z отвечает за глубину/высоту (объём).";
+        markStepDone(1);
+      } else if (val) {
+        fb.style.color = "var(--danger)"; fb.textContent = "Неверно. Вспомни, чем 3D отличается от 2D.";
+      }
+    }
+
+    // Интерактив 2 (3D Куб)
+    function updateCube() {
+      const rx = document.getElementById('rotX').value;
+      const ry = document.getElementById('rotY').value;
+      const sc = document.getElementById('scaleObj').value;
+      document.getElementById('valRX').textContent = `${rx}°`;
+      document.getElementById('valRY').textContent = `${ry}°`;
+      document.getElementById('valS').textContent = sc;
+      document.getElementById('cubeObj').style.transform = `translateZ(-75px) rotateX(${rx}deg) rotateY(${ry}deg) scale(${sc})`;
+    }
+    function resetCube() {
+      document.getElementById('rotX').value = -15; document.getElementById('rotY').value = 15; document.getElementById('scaleObj').value = 1;
+      updateCube();
+    }
+
+    // Интерактив 3 (Булевы операции)
+    function showBool(type) {
+      document.querySelectorAll('.bool-svg').forEach(el => el.classList.remove('active'));
+      document.getElementById(`bool-${type}`).classList.add('active');
+    }
+
+    // Викторина (Шаг 5)
+    const questions = [
+      { q: "1. Как расшифровывается аббревиатура САПР (CAD)?", o: ["Система Автоматизированного Проектирования", "Служба Архивной Передачи Рисунков", "Сервис Автоматической Печати Решений"], c: 0 },
+      { q: "2. Какая ось координат добавляется в 3D-пространстве (в отличие от 2D чертежа)?", o: ["Ось X", "Ось Y", "Ось Z"], c: 2 },
+      { q: "3. Как называется операция превращения плоского контура в объемную фигуру?", o: ["Вращение", "Выдавливание (Extrude)", "Масштабирование"], c: 1 },
+      { q: "4. Если тебе нужно сделать круглое отверстие в корпусе, какую Булеву операцию нужно использовать?", o: ["Вычитание", "Объединение", "Пересечение"], c: 0 },
+      { q: "5. В какой формат (как правило) нужно сохранить 3D-модель, чтобы передать её в слайсер для 3D-принтера?", o: ["DOCX", "STL", "JPG"], c: 1 },
+      { q: "6. Что такое G-code?", o: ["Пароль от компьютера", "Текстовый файл с координатами и командами для станка", "Графический формат для картинок в интернете"], c: 1 }
+    ];
+    const userAnswers = {};
+
+    function renderQuiz() {
+      const box = document.getElementById("quizContainer");
+      questions.forEach((q, qI) => {
+        let h = `<div class="quiz-q"><strong>${q.q}</strong><div id="qOpts-${qI}">`;
+        q.o.forEach((opt, oI) => { h += `<button class="quiz-opt" onclick="selQuiz(${qI}, ${oI})">${opt}</button>`; });
+        box.innerHTML += h + `</div></div>`;
+      });
+    }
+
+    function selQuiz(qI, oI) {
+      userAnswers[qI] = oI;
+      const opts = document.getElementById(`qOpts-${qI}`).querySelectorAll('.quiz-opt');
+      opts.forEach(el => el.classList.remove('selected'));
+      opts[oI].classList.add('selected');
+    }
+
+    function finishLesson() {
+      if(Object.keys(userAnswers).length < questions.length) { alert("Ответь на все 6 вопросов!"); return; }
+      
+      let score = 0;
+      questions.forEach((q, qI) => {
+        const chosen = userAnswers[qI];
+        const opts = document.getElementById(`qOpts-${qI}`).querySelectorAll('.quiz-opt');
+        opts.forEach((el, oI) => {
+          el.classList.remove('selected','correct','wrong');
+          if(oI === q.c) el.classList.add('correct');
+          else if(oI === chosen && chosen !== q.c) el.classList.add('wrong');
+        });
+        if(chosen === q.c) score++;
+      });
+
+      let grade = 2;
+      if (score >= 6) grade = 5; else if (score >= 4) grade = 4; else if (score >= 3) grade = 3;
+
+      document.getElementById("cName").textContent = state.name;
+      document.getElementById("cGrade").textContent = `Оценка: ${grade}`;
+      document.getElementById("cStats").textContent = `Верных ответов: ${score} из 6 • Время: ~${Math.max(1, Math.round(state.time/60))} мин`;
+      document.getElementById("cCode").textContent = `TECH7-${score}${grade}-${new Date().getDate()}${new Date().getMonth()+1}`;
+      
+      document.getElementById("certSection").style.display = "block";
+      document.getElementById("certSection").scrollIntoView({ behavior: "smooth" });
+      markStepDone(5);
+    }
+
+    renderQuiz();
+  </script>
+</body>
+</html>
